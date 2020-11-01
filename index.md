@@ -1,97 +1,33 @@
-const md5 = require('crypto-js/md5');
-const findOrCreate = require('mongoose-find-or-create')
-const shortid = require('shortid');
-const express = require('express')
-const app = express()
-const bodyParser = require('body-parser')
-const cors = require('cors')
-const mongoose = require('mongoose')
-const url = 'mongodb://127.0.0.1:27017/mydb'
+<head>
+      <title>Exercise Tracker | Free Code Camp</title>
+      <link rel="shortcut icon" href="https://cdn.hyperdev.com/us-east-1%3A52a203ff-088b-420f-81be-45bf559d01b1%2Ffavicon.ico" type="image/x-icon">
+      <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
+      <link href="style.css" rel="stylesheet" type="text/css">
+   </head>
 
-mongoose.connect(url, { useNewUrlParser: true })
-
-const db = mongoose.connection
-
-db.once('open', _ => {
-  console.log('Database connected:', url)
-})
-
-db.on('error', err => {
-  console.error('connection error:', err)
-})
-
-app.use(cors())
-
-app.use(bodyParser.urlencoded({extended: false}))
-app.use(bodyParser.json())
-app.use(express.static('public'))
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html')
-});
-
-// Error Handling middleware
-app.use((err, req, res, next) => {
-  let errCode, errMessage
-
-  if (err.errors) {
-    // mongoose validation error
-    errCode = 400 // bad request
-    const keys = Object.keys(err.errors)
-    // report the first validation error
-    errMessage = err.errors[keys[0]].message
-  } else {
-    // generic or custom error
-    errCode = err.status || 500
-    errMessage = err.message || 'Internal Server Error'
-  }
-  res.status(errCode).type('txt')
-  .send(errMessage)
-})
-
-const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log('Your app is listening on port ' + listener.address().port)
-})
-
-// The exercise tracker app
-// define the database
-var userSchema = new mongoose.Schema({
-  username: String,
-  _id: String,
-});
-userSchema.plugin(findOrCreate)
-
-// create the Model
-var User = mongoose.model('User', userSchema);
-
-app.post("/api/exercise/new-user", (req, res) => {
-  var username = req.body.username;
-  // create a hash as the user _id
-  var _id = md5(username).toString().slice(-7);
-  User.findOrCreate({ username: username, _id: _id}, (err, result) => {
-    if (err) return console.log(err);
-    //console.log("hello")
-    //console.log(result)
-    res.json({
-      username: username,
-      _id : _id
-    });
-  })
-});
+   <body>
+      <div class="container">
+         <h1>Exercise tracker</h1>
+          <form action="/api/exercise/new-user" method="post">
+            <h3>Create a New User</h3>
+            <p><code>POST /api/exercise/new-user</code></p>
+            <input id="uname" name="username" placeholder="username" type="text">
+            <input value="Submit" type="submit">
+          </form>
+          <form action="/api/exercise/add" method="post">
+            <h3>Add exercises</h3>
+            <p><code>POST /api/exercise/add</code></p>
+            <input id="uid" name="userId" placeholder="userId*" type="text">
+            <input id="desc" name="description" placeholder="description*" type="text">
+            <input id="dur" name="duration" placeholder="duration* (mins.)" type="text">
+            <input id="dur" name="date" placeholder="date (yyyy-mm-dd)" type="text">
+            <input value="Submit" type="submit">
+          </form>
+          <p><strong>GET users's exercise log: </strong><code>GET /api/exercise/log?{userId}[&amp;from][&amp;to][&amp;limit]</code></p>
+          <p><strong>{ }</strong> = required, <strong>[ ]</strong> = optional</p>
+          <p><strong>from, to</strong> = dates (yyyy-mm-dd); <strong>limit</strong> = number</p>
+      </div>
+   
 
 
-app.get('/api/exercise/users', (req, res) => {
-
-  User.find(function (err, results) {
-
-    res.json({
-      hello: "hello"
-    });
-    console.log(results)
-  });
-})
-
-  // Not found middleware
-  // must be situated below the post function
-  app.use((req, res, next) => {
-    return next({status: 404, message: 'not found'})
-  })
+</body>
